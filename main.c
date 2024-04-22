@@ -202,7 +202,7 @@ int main(void)
 {
     
     printf("Press any key to exit...\n");
-    //system("FilterGear Output/diagonal.pgm");
+    //system("FilterGear output/diagonal.pgm");
     getchar();
 
     return 0;
