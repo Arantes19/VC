@@ -1,0 +1,22 @@
+How many bytes will a grayscale image, 8bpp, with a resolution of 320x240 occupy in memory?
+
+R:  Size_in_bytes = width * height * bit_depth
+    Size_in_bytes = 320 * 240 * 8 
+    Size_in_bytes = 768,000 bytes
+
+
+How many bytes will a binary image, 1bpp, with a resolution of 320x240 occupy in memory?
+
+R:  Size_in_bytes = width * height * bit_depth
+    Size_in_bytes = 320 * 240 * 1
+    Size_in_bytes = 76,800 bytes
+
+
+How many bytes will a binary image, 8bpp, with a resolution of 320x240 occupy in memory?
+
+R:  A binary image typically only requires 1 bit per pixel.
+
+
+Declare, using the data types of the C language, an array capable of storing a grayscale image, 8bpp, with a resolution of 704x576 pixels.
+
+R:  unsigned char grayscale_image[704][576];
