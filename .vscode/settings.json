@@ -1,3 +1,6 @@
 {
-    "discord.enabled": false
+    "discord.enabled": true,
+    "files.associations": {
+        "stdlib.h": "c"
+    }
 }
