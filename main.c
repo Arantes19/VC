@@ -21,7 +21,7 @@ int openModifyAndSaveImage()
     {
         image->data[i] = 255 - image->data[i];
     }
-
+//teste
     vc_write_image("output/vc-0001.pgm", image);
     vc_image_free(image);
 
