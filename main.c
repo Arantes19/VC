@@ -262,11 +262,22 @@ int labellingImagePainEachBlob()
 
 int main(void)
 {
-    labellingImagePainEachBlob();
+    IVC * image;
+	int i;
+
+	image = vc_read_image("img_tp/resis1.ppm");
+	if (image == NULL)
+	{
+		printf("ERROR -> vc_read_image():\n\tFile not found!\n");
+		getchar();
+		return 0;
+	}
+
+    vc_image_free(image);
 
     printf("Press any key to exit...\n");
-    system("cmd /c start FilterGear Images/Labelling/labelling-2.pgm");
-    system("FilterGear output/labelling2.pgm");
+    system("cmd /c start FilterGear img_tp/resis1.ppm");
+    system("FilterGear img_tp/resis1.ppm");
     getchar();
 
     return 0;
