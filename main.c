@@ -263,9 +263,17 @@ int labellingImagePainEachBlob()
 int main(void)
 {
     IVC * image;
-	int i;
+	IVC * image2;
+	IVC * image3;
+	//Está comentado pq não se usa
+	//int i;
 
 	image = vc_read_image("img_tp/resis1.ppm");
+	//Os canais estão como "1" pq são imagens grayscale
+	image2 = vc_image_new(image->width, image->height, 1, image->levels);
+	image3 = vc_image_new(image->width, image->height, 1, image->levels);
+
+
 	if (image == NULL)
 	{
 		printf("ERROR -> vc_read_image():\n\tFile not found!\n");
@@ -273,11 +281,24 @@ int main(void)
 		return 0;
 	}
 
-    vc_image_free(image);
+	vc_rgb_to_gray(image, image2);
 
+	vc_gray_to_binary(image2, image3, 180);//Quando se usa a outra função de segmentação fica mal ent mudei para esta e acho que este threshold é o melhor mas dps ve
+
+	//Criar as imagens depois de realizadas as devidas alterações;
+	vc_write_image("image2.ppm", image2);
+    vc_write_image("TESTE.ppm", image3);
+
+	//Libertar a memória alocada às imagens;
+    vc_image_free(image);
+    vc_image_free(image2);
+    vc_image_free(image3);
+
+	//Abrir as imagens produzidas de maneira a procurar por erros;
     printf("Press any key to exit...\n");
     system("cmd /c start FilterGear img_tp/resis1.ppm");
-    system("FilterGear img_tp/resis1.ppm");
+	system("FilterGear image2.ppm");
+    system("FilterGear TESTE.ppm");
     getchar();
 
     return 0;
