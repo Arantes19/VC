@@ -101,3 +101,8 @@ IVC* vc_convert_bgr_to_rgb(IVC* src);
 int vc_hsv_segmentation(IVC* src, IVC* dst, int hmin, int hmax, int smin, int smax, int vmin, int vmax);
 
 int vc_gray_3channels(IVC* src, IVC* dst);
+
+int lateraisBinary(IVC *src, IVC * dst);
+
+int lateraisHsv(IVC *src, IVC * dst);
+

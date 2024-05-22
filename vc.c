@@ -1587,7 +1587,7 @@ int vc_hsv_segmentation(IVC *src, IVC *dst, int hmin, int hmax, int smin, int sm
 	long int pos_src, pos_dst;
 	int x, y;
 
-	// Verifica��o de erros+
+	// Verifica��o de erros
 	if ((width <= 0) || (height <= 0) || (datasrc == NULL))
 		return 0;
 	if (width != dst->width || height != dst->height)
@@ -1652,4 +1652,176 @@ int vc_gray_3channels(IVC *src, IVC *dst)
 		}
 	}
 	return 1;
+}
+
+
+int lateraisBinary(IVC *src, IVC * dst){
+
+	unsigned char *datasrc = (unsigned char *)src->data;
+	unsigned char *datadst = (unsigned char *)dst->data;
+	int width = src->width;
+	int height = src->height;
+	int bytesperline = src->bytesperline;
+	int channels = src->channels;
+	int x, y;
+	int i, j;
+	long int pos, posaux;
+	unsigned char pixel;
+	int hmin=5000, hmax=0, wmin=5000, wmax=0, haux, waux;
+
+	// Verificação de erros
+	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL))
+		return 0;
+	if ((src->width != dst->width) || (src->height != dst->height) || (src->channels != dst->channels))
+		return 0;
+	if (channels != 1)
+		return 0;
+
+
+	memcpy(datadst, datasrc, bytesperline * height);
+
+	// Cálculo da erosão
+	for (y = 0; y < height; y++)
+	{
+		for (x = 0; x < width; x++)
+		{
+			pos = y * bytesperline + x * channels;
+
+			pixel = datasrc[pos];
+
+			haux = y;
+			waux = x;
+
+			//Se o pixel for preto
+			if (pixel == 0)
+			{
+				//Descobre a altura min (ou o topo do retangulo)
+				if (haux < hmin)
+				{
+					hmin = haux;
+				}
+				
+				//Descobre a altura max (ou a base do retangulo)
+				if (haux > hmax)
+				{
+					hmax = haux;
+				}
+
+				//Descobre a largura min (ou o lado esquerdo do retangulo)
+				if (waux < wmin)
+				{	
+					wmin = waux;
+				}
+
+				//Descobre a largura max (ou o lado direito do retangulo)
+				if (waux > wmax)
+				{
+					wmax = waux;
+				}
+			}
+			
+		}
+	}
+
+	//Desenhar linha entre wmin e wmax na linha de hmax && wmin e wmax na linha de hmin && hmax a hmin na coluna de wmin && hmax a hmin na coluna de wmax
+	for (i = hmin; i <= hmax; i++)
+	{
+		for (j = wmin; j <= wmax; j++)
+		{
+			if (i==hmin || i==hmax || j==wmin || j==wmax)
+			{
+					posaux = i * bytesperline + j * channels;
+					datadst[posaux] = 0;		
+			}
+		
+		}
+		
+	}
+	return 1;
+}
+
+int lateraisHsv(IVC *src, IVC * dst){
+
+	unsigned char *datasrc = (unsigned char *)src->data;
+	unsigned char *datadst = (unsigned char *)dst->data;
+	int bytesperline_src = src->width * src->channels;
+	int bytesperline_dst = dst->width * dst->channels;
+	int channels_src = src->channels;
+	int channels_dst = dst->channels;
+	int width = src->width;
+	int height = src->height;
+	long int pos_src, pos_dst;
+	int x, y, i, j;
+	int hmin=5000, hmax=0, wmin=5000, wmax=0, haux, waux, pixel;
+
+	// Verificação de erros
+	if ((width <= 0) || (height <= 0) || (datasrc == NULL))
+		return 0;
+	if (width != dst->width || height != dst->height)
+		return 0;
+	if (channels_src != 3 || dst->channels != 1)
+		return 0;
+
+
+	memcpy(datadst, datasrc, bytesperline_src * height);
+
+	// Cálculo da erosão
+	for (y = 0; y < height; y++)
+	{
+		for (x = 0; x < width; x++)
+		{
+			pos_src = y * bytesperline_src + x * channels_src;
+
+			pixel = datasrc[pos_src];
+
+			haux = y;
+			waux = x;
+
+			//Se o pixel for preto
+			if (pixel == 0)
+			{
+				//Descobre a altura min (ou o topo do retangulo)
+				if (haux < hmin)
+				{
+					hmin = haux;
+				}
+				
+				//Descobre a altura max (ou a base do retangulo)
+				if (haux > hmax)
+				{
+					hmax = haux;
+				}
+
+				//Descobre a largura min (ou o lado esquerdo do retangulo)
+				if (waux < wmin)
+				{	
+					wmin = waux;
+				}
+
+				//Descobre a largura max (ou o lado direito do retangulo)
+				if (waux > wmax)
+				{
+					wmax = waux;
+				}
+			}
+			
+		}
+	}
+
+	//Desenhar linha entre wmin e wmax na linha de hmax && wmin e wmax na linha de hmin && hmax a hmin na coluna de wmin && hmax a hmin na coluna de wmax
+	for (i = hmin; i <= hmax; i++)
+	{
+		for (j = wmin; j <= wmax; j++)
+		{
+			if (i==hmin || i==hmax || j==wmin || j==wmax)
+			{
+					pos_dst = i * bytesperline_dst + j * channels_dst;
+					datadst[pos_dst] = 0;		
+			}
+		
+		}
+		
+	}
+	return 1;
+
 }

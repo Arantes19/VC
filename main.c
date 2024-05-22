@@ -258,21 +258,23 @@ int labellingImagePainEachBlob()
 	return 0;
 }
 
-
-
 int main(void)
 {
     IVC * image;
 	IVC * image2;
 	IVC * image3;
+	IVC * image4;
+	IVC * image5;
+	
 	//Está comentado pq não se usa
 	//int i;
 
 	image = vc_read_image("img_tp/resis1.ppm");
 	//Os canais estão como "1" pq são imagens grayscale
-	image2 = vc_image_new(image->width, image->height, 1, image->levels);
-	image3 = vc_image_new(image->width, image->height, 1, image->levels);
-
+	image2 = vc_image_new(image->width, image->height, 3, image->levels);
+	image3 = vc_image_new(image->width, image->height, 3, image->levels);
+	//image4 = vc_image_new(image->width, image->height, 1, image->levels);
+	//image5 = vc_image_new(image->width, image->height, 1, image->levels);
 
 	if (image == NULL)
 	{
@@ -280,25 +282,46 @@ int main(void)
 		getchar();
 		return 0;
 	}
-
+/*
+	//Serve para imagens binárias
 	vc_rgb_to_gray(image, image2);
 
-	vc_gray_to_binary(image2, image3, 180);//Quando se usa a outra função de segmentação fica mal ent mudei para esta e acho que este threshold é o melhor mas dps ve
+	vc_gray_to_binary(image2, image3, 165);//Quando se usa a outra função de segmentação fica mal ent mudei para esta e acho que este threshold é o melhor mas dps ve
+
+	vc_binary_close(image3, image4, 9, 9);
+
+	lateraisBinary(image4, image5);
+*/
+	//Serve para imagens HSV (AINDA NÃO FUNCIONA)
+	vc_rgb_to_hsv(image,image2);
+
+	vc_hsv_segmentation(image2, image3, 36, 44, 55, 100, 70, 90);
+	
+
 
 	//Criar as imagens depois de realizadas as devidas alterações;
 	vc_write_image("image2.ppm", image2);
     vc_write_image("TESTE.ppm", image3);
+    //vc_write_image("Erode.ppm", image4);
+   	//vc_write_image("Laterais.ppm", image5);
+
+
 
 	//Libertar a memória alocada às imagens;
     vc_image_free(image);
     vc_image_free(image2);
     vc_image_free(image3);
+    //vc_image_free(image4);
+    //vc_image_free(image5);
+
 
 	//Abrir as imagens produzidas de maneira a procurar por erros;
     printf("Press any key to exit...\n");
     system("cmd /c start FilterGear img_tp/resis1.ppm");
 	system("FilterGear image2.ppm");
     system("FilterGear TESTE.ppm");
+	//system("cmd /c start FilterGear Erode.ppm");
+    //system("FilterGear Laterais.ppm");
     getchar();
 
     return 0;
