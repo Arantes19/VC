@@ -260,69 +260,122 @@ int labellingImagePainEachBlob()
 
 int main(void)
 {
-    IVC * image;
-	IVC * image2;
-	IVC * image3;
-	IVC * image4;
-	IVC * image5;
+    IVC * image[10];
 	
-	//Está comentado pq não se usa
-	//int i;
-
-	image = vc_read_image("img_tp/resis1.ppm");
-	//Os canais estão como "1" pq são imagens grayscale
-	image2 = vc_image_new(image->width, image->height, 3, image->levels);
-	image3 = vc_image_new(image->width, image->height, 3, image->levels);
-	//image4 = vc_image_new(image->width, image->height, 1, image->levels);
-	//image5 = vc_image_new(image->width, image->height, 1, image->levels);
-
-	if (image == NULL)
-	{
-		printf("ERROR -> vc_read_image():\n\tFile not found!\n");
-		getchar();
-		return 0;
-	}
-/*
-	//Serve para imagens binárias
-	vc_rgb_to_gray(image, image2);
-
-	vc_gray_to_binary(image2, image3, 165);//Quando se usa a outra função de segmentação fica mal ent mudei para esta e acho que este threshold é o melhor mas dps ve
-
-	vc_binary_close(image3, image4, 9, 9);
-
-	lateraisBinary(image4, image5);
-*/
-	//Serve para imagens HSV (AINDA NÃO FUNCIONA)
-	vc_rgb_to_hsv(image,image2);
-
-	vc_hsv_segmentation(image2, image3, 36, 44, 55, 100, 70, 90);
+	/*  Segmentação cor vermelha */
+	image[0] = vc_read_image("img_tp/resis1.ppm");
+	image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); // imagens hsv devem ter todas as propriedades iguais á imagem original
+	vc_rgb_to_hsv(image[0], image[1]);
+	image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels); //imagens das cores segmentadas devem ser pgm -> 1 channel
+	vc_hsv_segmentation(image[1], image[2], 6, 16, 50, 72, 60, 80); // valores com uma margem (entre 2/5)
 	
+	/* Melhoramento de imagem
 
+	Podes ir rever a matéria relativa a isto e experimentar aplicar alguns dos filtros de melhoramento da imagem.
+	Ex: binary_close, binary_dilate, etc etc 
+
+	*/
+	// codigo aqui e quando conseguires melhorar podes descomentar o que está em cima e deixar apenas titulo 
+
+	/* Criar blob e labelling 
+	Isto tenho de ver melhor mas se tiveres tempo podes tentar fazer isto
+	No projeto que te mandei ("TP/main.c") tens lá como o gajo fez, podes tentar recriar que tb ajuda a perceber  
+
+	*/
+	// codigo aqui e quando conseguires melhorar podes descomentar o que está em cima e deixar apenas titulo 
+
+	/* Segmentação cor azul
+
+	image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	vc_hsv_segmentation(image[1], image[3], 115, 200, 10, 43, 35, 48);
+
+	terminando as cenas para a cor vermelha, replicar para cor azul 
+	*/
+	
+	/* Segmentação cor verde 
+
+	image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	vc_hsv_segmentation(image[1], image[4], 65, 115, 25, 50, 35, 60);
+
+	terminando as cenas para a cor vermelha, replicar para cor verde 
+	*/
+
+	/* Segmentação cor castanho
+	image[5] = vc_read_image("img_tp/resis3.ppm");
+	image[6] = vc_image_new(image[5]->width, image[5]->height, image[5]->channels, image[5]->levels);
+	vc_rgb_to_hsv(image[5], image[6]);
+	image[7] = vc_image_new(image[5]->width, image[5]->height, 1, image[5]->levels);
+	vc_hsv_segmentation(image[6], image[7], 20, 38, 23, 51, 31, 50);
+	*/
+
+	/* Segmentação cor verde escuro
+	image[8] = vc_read_image("img_tp/resis4.ppm");
+	image[9] = vc_image_new(image[8]->width, image[8]->height, image[8]->channels, image[8]->levels);
+	vc_rgb_to_hsv(image[8], image[9]);
+	image[10] = vc_image_new(image[8]->width, image[8]->height, 1, image[8]->levels);
+	vc_hsv_segmentation(image[9], image[10], 30, 100, 3, 35, 22, 27);
+	*/
 
 	//Criar as imagens depois de realizadas as devidas alterações;
-	vc_write_image("image2.ppm", image2);
-    vc_write_image("TESTE.ppm", image3);
-    //vc_write_image("Erode.ppm", image4);
-   	//vc_write_image("Laterais.ppm", image5);
+	vc_write_image("test_tp/hsv.pgm", image[1]);
+    vc_write_image("test_tp/red.pgm", image[2]);
+	vc_write_image("test_tp/blue.pgm", image[3]);
+	vc_write_image("test_tp/green.pgm", image[4]);
 
+	/* Escrita da hsv da resistencia 2 e segmentação do castanho
+	vc_write_image("test_tp/hsv2.pgm", image[6]);
+	vc_write_image("test_tp/brown.pgm", image[7]);
+	*/
 
+	/* Escrita da hsv da resistencia 3 e segmentação do verde escuro
+	vc_write_image("test_tp/hsv3.pgm", image[9]);
+	vc_write_image("test_tp/darkgreen.pgm", image[10]);
+	*/
 
 	//Libertar a memória alocada às imagens;
-    vc_image_free(image);
-    vc_image_free(image2);
-    vc_image_free(image3);
-    //vc_image_free(image4);
-    //vc_image_free(image5);
+    vc_image_free(image[0]);
+    vc_image_free(image[1]);
+    vc_image_free(image[2]);
+	vc_image_free(image[3]);
+	vc_image_free(image[4]);
+
+	/* Descomentar para testar segmentação de castanho e verde escuro
+	vc_image_free(image[5]);
+	vc_image_free(image[6]);
+	vc_image_free(image[7]);
+	vc_image_free(image[8]);
+	vc_image_free(image[9]);
+	vc_image_free(image[10]);
+	*/
+	
 
 
 	//Abrir as imagens produzidas de maneira a procurar por erros;
     printf("Press any key to exit...\n");
-    system("cmd /c start FilterGear img_tp/resis1.ppm");
-	system("FilterGear image2.ppm");
-    system("FilterGear TESTE.ppm");
-	//system("cmd /c start FilterGear Erode.ppm");
-    //system("FilterGear Laterais.ppm");
-    getchar();
 
+    system("cmd /c start FilterGear img_tp/resis1.ppm");
+	system("FilterGear test_tp/hsv.pgm"); // é preciso verificar se realmente é pgm as imagens hsv
+    system("FilterGear test_tp/red.pgm");
+	system("FilterGear test_tp/blue.pgm");
+	system("FilterGear test_tp/green.pgm");
+
+	/* Testes de segmentação do castanho
+	system("cmd /c start FilterGear img_tp/resis3.ppm");
+	system("FilterGear test_tp/hsv2.pgm");
+	system("FilterGear test_tp/brown.pgm");
+	*/
+	
+	/* Testes de segmentação do verde escuro
+	system("cmd /c start FilterGear img_tp/resis4.ppm");
+	system("FilterGear test_tp/hsv3.pgm");
+	system("FilterGear test_tp/darkgreen.pgm");
+	*/
+
+
+	// Comandos que estou a executar para correr o código:
+	// gcc vc.c main.c -o a.exe
+	// ./a.exe
+
+    getchar();
     return 0;
 }
