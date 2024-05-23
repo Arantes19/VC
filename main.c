@@ -261,22 +261,19 @@ int labellingImagePainEachBlob()
 int main(void)
 {
     IVC * image[10];
-	
+	IVC * imgOC[10];//Imagem que passou por um Open ou um Close
+
+
 	/*  Segmentação cor vermelha */
 	image[0] = vc_read_image("img_tp/resis1.ppm");
 	image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); // imagens hsv devem ter todas as propriedades iguais á imagem original
+	
 	vc_rgb_to_hsv(image[0], image[1]);
+	
 	image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels); //imagens das cores segmentadas devem ser pgm -> 1 channel
 	vc_hsv_segmentation(image[1], image[2], 6, 16, 50, 72, 60, 80); // valores com uma margem (entre 2/5)
 	
-	/* Melhoramento de imagem
-
-	Podes ir rever a matéria relativa a isto e experimentar aplicar alguns dos filtros de melhoramento da imagem.
-	Ex: binary_close, binary_dilate, etc etc 
-
-	*/
-	// codigo aqui e quando conseguires melhorar podes descomentar o que está em cima e deixar apenas titulo 
-
+	
 	/* Criar blob e labelling 
 	Isto tenho de ver melhor mas se tiveres tempo podes tentar fazer isto
 	No projeto que te mandei ("TP/main.c") tens lá como o gajo fez, podes tentar recriar que tb ajuda a perceber  
@@ -284,21 +281,21 @@ int main(void)
 	*/
 	// codigo aqui e quando conseguires melhorar podes descomentar o que está em cima e deixar apenas titulo 
 
-	/* Segmentação cor azul
+	 //Segmentação cor azul
 
 	image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
 	vc_hsv_segmentation(image[1], image[3], 115, 200, 10, 43, 35, 48);
 
-	terminando as cenas para a cor vermelha, replicar para cor azul 
-	*/
+	//terminando as cenas para a cor vermelha, replicar para cor azul 
 	
-	/* Segmentação cor verde 
+	
+	 //Segmentação cor verde 
 
 	image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
 	vc_hsv_segmentation(image[1], image[4], 65, 115, 25, 50, 35, 60);
 
-	terminando as cenas para a cor vermelha, replicar para cor verde 
-	*/
+	//terminando as cenas para a cor vermelha, replicar para cor verde 
+	
 
 	/* Segmentação cor castanho
 	image[5] = vc_read_image("img_tp/resis3.ppm");
@@ -316,11 +313,41 @@ int main(void)
 	vc_hsv_segmentation(image[9], image[10], 30, 100, 3, 35, 22, 27);
 	*/
 
+
+
+
+		/* Melhoramento de imagem*/
+	// Passei para baixo pq eu precisava das segmentações já criadas
+
+	imgOC[1] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	imgOC[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	imgOC[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+
+
+	//Close = Dilate, Erode 
+	vc_binary_close(image[2], imgOC[1], 9, 9);
+	vc_binary_close(image[3], imgOC[2], 9, 9);
+	vc_binary_close(image[4], imgOC[3], 9, 9);
+
+
+
+	//Dilate = Erode, Dilate //Foi ignorado por produzir resultados piores, como seria de esperar... 
+	//vc_binary_open(image[2], imgOC[1], 11, 11);
+	//vc_binary_open(image[3], imgOC[2], 11, 11);
+	//vc_binary_open(image[4], imgOC[3], 11, 11);
+
+
+
+
 	//Criar as imagens depois de realizadas as devidas alterações;
 	vc_write_image("test_tp/hsv.pgm", image[1]);
     vc_write_image("test_tp/red.pgm", image[2]);
 	vc_write_image("test_tp/blue.pgm", image[3]);
 	vc_write_image("test_tp/green.pgm", image[4]);
+	vc_write_image("BC-1.pgm", imgOC[1]);
+	vc_write_image("BC-2.pgm", imgOC[2]);
+	vc_write_image("BC-3.pgm", imgOC[3]);
+
 
 	/* Escrita da hsv da resistencia 2 e segmentação do castanho
 	vc_write_image("test_tp/hsv2.pgm", image[6]);
@@ -333,11 +360,16 @@ int main(void)
 	*/
 
 	//Libertar a memória alocada às imagens;
-    vc_image_free(image[0]);
-    vc_image_free(image[1]);
+    //vc_image_free(image[0]);
+    //vc_image_free(image[1]);
     vc_image_free(image[2]);
 	vc_image_free(image[3]);
 	vc_image_free(image[4]);
+
+	vc_image_free(imgOC[1]);
+	vc_image_free(imgOC[2]);
+	vc_image_free(imgOC[3]);
+
 
 	/* Descomentar para testar segmentação de castanho e verde escuro
 	vc_image_free(image[5]);
@@ -351,14 +383,21 @@ int main(void)
 
 
 	//Abrir as imagens produzidas de maneira a procurar por erros;
-    printf("Press any key to exit...\n");
+    
 
-    system("cmd /c start FilterGear img_tp/resis1.ppm");
-	system("FilterGear test_tp/hsv.pgm"); // é preciso verificar se realmente é pgm as imagens hsv
-    system("FilterGear test_tp/red.pgm");
-	system("FilterGear test_tp/blue.pgm");
-	system("FilterGear test_tp/green.pgm");
+    //system("cmd /c start FilterGear img_tp/resis1.ppm");
+	system("cmd /c start FilterGear test_tp/hsv.pgm"); // é preciso verificar se realmente é pgm as imagens hsv|| Resposta: supostamente PPM é para rgb entao deveria dar para HSV mas o Chat diz para meter como jpeg, png, etc
+    system("cmd /c start FilterGear test_tp/red.pgm");
+	system("cmd /c start FilterGear  test_tp/blue.pgm");
+	system("cmd /c start FilterGear  test_tp/green.pgm");
 
+	system("cmd /c start FilterGear  BC-1.pgm");
+	system("cmd /c start FilterGear  BC-3.pgm");
+	system("cmd /c start FilterGear  BC-2.pgm");
+
+	printf("Press any key to exit...\n");
+	
+	
 	/* Testes de segmentação do castanho
 	system("cmd /c start FilterGear img_tp/resis3.ppm");
 	system("FilterGear test_tp/hsv2.pgm");

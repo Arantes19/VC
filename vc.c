@@ -844,6 +844,8 @@ int vc_binary_dilate(IVC *src, IVC *dst, int size)
 	if (channels != 1)
 		return 0;
 
+
+	//Kernel pode ser par
 	s2 = (size - 1) / 2;
 	s1 = -(s2);
 
@@ -910,6 +912,7 @@ int vc_binary_erode(IVC *src, IVC *dst, int size)
 	if (channels != 1)
 		return 0;
 
+	//Kernel tem que ser impar
 	s2 = (size - 1) / 2;
 	s1 = -(s2);
 
@@ -1665,7 +1668,7 @@ int lateraisBinary(IVC *src, IVC * dst){
 	int channels = src->channels;
 	int x, y;
 	int i, j;
-	long int pos, posaux;
+	long int pos, posdst;
 	unsigned char pixel;
 	int hmin=5000, hmax=0, wmin=5000, wmax=0, haux, waux;
 
@@ -1730,18 +1733,30 @@ int lateraisBinary(IVC *src, IVC * dst){
 		{
 			if (i==hmin || i==hmax || j==wmin || j==wmax)
 			{
-					posaux = i * bytesperline + j * channels;
-					datadst[posaux] = 0;		
+					posdst = i * bytesperline + j * channels;
+					datadst[posdst] = 0;		
 			}
 		
 		}
 		
 	}
+	haux = ( hmax - hmin ) / 2;
+	waux = ( wmax - wmin ) / 2;
+
+	haux = hmax - haux;
+	waux = wmax - waux;
+
 	return 1;
 }
 
+
+//Ideia seria receber o RGB(src) e uma imagem(dst) para "desenhar" as laterais da resistencia
+//Para "desenhar" seria necessário passar a RGB para HSV, passar para binario, fazer o close e passar pela função lateraisBinarios. 
+//Seria necessario enviar os dados de hmax, hmin, wmax e wmin para desenhar utilizando essas coordenadas
+
 int lateraisHsv(IVC *src, IVC * dst){
 
+	IVC *img[5];//Imagens para operações intermedias
 	unsigned char *datasrc = (unsigned char *)src->data;
 	unsigned char *datadst = (unsigned char *)dst->data;
 	int bytesperline_src = src->width * src->channels;
@@ -1765,63 +1780,38 @@ int lateraisHsv(IVC *src, IVC * dst){
 
 	memcpy(datadst, datasrc, bytesperline_src * height);
 
-	// Cálculo da erosão
-	for (y = 0; y < height; y++)
+	//RGB para GrayScale
+	img[0] = vc_image_new(src->width, src->height, 1, src->levels);
+	vc_rgb_to_gray(src, img[0]);
+	
+	if (img[0] == NULL)
 	{
-		for (x = 0; x < width; x++)
-		{
-			pos_src = y * bytesperline_src + x * channels_src;
-
-			pixel = datasrc[pos_src];
-
-			haux = y;
-			waux = x;
-
-			//Se o pixel for preto
-			if (pixel == 0)
-			{
-				//Descobre a altura min (ou o topo do retangulo)
-				if (haux < hmin)
-				{
-					hmin = haux;
-				}
-				
-				//Descobre a altura max (ou a base do retangulo)
-				if (haux > hmax)
-				{
-					hmax = haux;
-				}
-
-				//Descobre a largura min (ou o lado esquerdo do retangulo)
-				if (waux < wmin)
-				{	
-					wmin = waux;
-				}
-
-				//Descobre a largura max (ou o lado direito do retangulo)
-				if (waux > wmax)
-				{
-					wmax = waux;
-				}
-			}
-			
-		}
+		printf("GANDA ERRO!!");	
+		return 0;
 	}
 
-	//Desenhar linha entre wmin e wmax na linha de hmax && wmin e wmax na linha de hmin && hmax a hmin na coluna de wmin && hmax a hmin na coluna de wmax
-	for (i = hmin; i <= hmax; i++)
+	img[1] = vc_image_new(src->width, src->height, 1, 1);
+	vc_gray_to_binary(img[0], img[1], 180);
+
+	if (img[1] == NULL)
 	{
-		for (j = wmin; j <= wmax; j++)
-		{
-			if (i==hmin || i==hmax || j==wmin || j==wmax)
-			{
-					pos_dst = i * bytesperline_dst + j * channels_dst;
-					datadst[pos_dst] = 0;		
-			}
-		
-		}
-		
+		printf("GANDA ERRO!!");	
+		return 0;
 	}
+
+	img[2] = vc_image_new(src->width, src->height, 1, 1);
+	lateraisBinary(img[1], img[2]);
+	
+	if (img[2] == NULL)
+	{
+		printf("GANDA ERRO!!");	
+		return 0;
+	}
+
+	
+
+	
+
 	return 1;
 
 }
