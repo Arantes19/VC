@@ -102,7 +102,7 @@ int vc_hsv_segmentation(IVC* src, IVC* dst, int hmin, int hmax, int smin, int sm
 
 int vc_gray_3channels(IVC* src, IVC* dst);
 
-int lateraisBinary(IVC *src, IVC * dst);
+int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
 
-int lateraisHsv(IVC *src, IVC * dst);
+int lateraisHsv(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
 

@@ -1658,7 +1658,7 @@ int vc_gray_3channels(IVC *src, IVC *dst)
 }
 
 
-int lateraisBinary(IVC *src, IVC * dst){
+int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin){
 
 	unsigned char *datasrc = (unsigned char *)src->data;
 	unsigned char *datadst = (unsigned char *)dst->data;
@@ -1667,10 +1667,11 @@ int lateraisBinary(IVC *src, IVC * dst){
 	int bytesperline = src->bytesperline;
 	int channels = src->channels;
 	int x, y;
-	int i, j;
+	int* i, *j;
 	long int pos, posdst;
 	unsigned char pixel;
-	int hmin=5000, hmax=0, wmin=5000, wmax=0, haux, waux;
+	int haux, waux;
+
 
 	// Verificação de erros
 	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL))
@@ -1699,27 +1700,27 @@ int lateraisBinary(IVC *src, IVC * dst){
 			if (pixel == 0)
 			{
 				//Descobre a altura min (ou o topo do retangulo)
-				if (haux < hmin)
+				if (haux < *hmin)
 				{
-					hmin = haux;
+					*hmin = haux;
 				}
 				
 				//Descobre a altura max (ou a base do retangulo)
-				if (haux > hmax)
+				if (haux > *hmax)
 				{
-					hmax = haux;
+					*hmax = haux;
 				}
 
 				//Descobre a largura min (ou o lado esquerdo do retangulo)
-				if (waux < wmin)
+				if (waux < *wmin)
 				{	
-					wmin = waux;
+					*wmin = waux;
 				}
 
 				//Descobre a largura max (ou o lado direito do retangulo)
-				if (waux > wmax)
+				if (waux > *wmax)
 				{
-					wmax = waux;
+					*wmax = waux;
 				}
 			}
 			
@@ -1733,19 +1734,20 @@ int lateraisBinary(IVC *src, IVC * dst){
 		{
 			if (i==hmin || i==hmax || j==wmin || j==wmax)
 			{
-					posdst = i * bytesperline + j * channels;
+					posdst = (*i) * bytesperline + (*j) * channels;
 					datadst[posdst] = 0;		
 			}
 		
 		}
 		
-	}
+	} 
+	/*
 	haux = ( hmax - hmin ) / 2;
 	waux = ( wmax - wmin ) / 2;
 
 	haux = hmax - haux;
 	waux = wmax - waux;
-
+	*/
 	return 1;
 }
 
@@ -1754,7 +1756,7 @@ int lateraisBinary(IVC *src, IVC * dst){
 //Para "desenhar" seria necessário passar a RGB para HSV, passar para binario, fazer o close e passar pela função lateraisBinarios. 
 //Seria necessario enviar os dados de hmax, hmin, wmax e wmin para desenhar utilizando essas coordenadas
 
-int lateraisHsv(IVC *src, IVC * dst){
+int lateraisHsv(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin){
 
 	IVC *img[5];//Imagens para operações intermedias
 	unsigned char *datasrc = (unsigned char *)src->data;
@@ -1766,8 +1768,8 @@ int lateraisHsv(IVC *src, IVC * dst){
 	int width = src->width;
 	int height = src->height;
 	long int pos_src, pos_dst;
-	int x, y, i, j;
-	int hmin=5000, hmax=0, wmin=5000, wmax=0, haux, waux, pixel;
+	int x, y, pixel;
+	int* i, *j;
 
 	// Verificação de erros
 	if ((width <= 0) || (height <= 0) || (datasrc == NULL))
@@ -1800,7 +1802,7 @@ int lateraisHsv(IVC *src, IVC * dst){
 	}
 
 	img[2] = vc_image_new(src->width, src->height, 1, 1);
-	lateraisBinary(img[1], img[2]);
+	lateraisBinary(img[1], img[2], hmax, hmin, wmax, wmin);
 	
 	if (img[2] == NULL)
 	{
@@ -1809,6 +1811,19 @@ int lateraisHsv(IVC *src, IVC * dst){
 	}
 
 	
+	for (i = hmin; i <= hmax; i++)
+	{
+		for (j = wmin; j <= wmax; j++)
+		{
+			if (i==hmin || i==hmax || j==wmin || j==wmax)
+			{
+					pos_dst = (*i) * bytesperline_dst + (*j) * channels_dst;
+					datadst[pos_dst] = 255;		
+			}
+		
+		}
+		
+	}
 
 	
 
