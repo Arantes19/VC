@@ -31,7 +31,8 @@ typedef struct {
 	int area;					// аrea
 	int xc, yc;					// Centro-de-massa
 	int perimeter;				// PerМmetro
-	int label;					// Etiqueta
+	int label;
+	char cor[10];			// Etiqueta
 } OVC;
 
 
@@ -105,4 +106,22 @@ int vc_gray_3channels(IVC* src, IVC* dst);
 int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
 
 int lateraisHsv(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
+
+int vc_join_images(IVC* src, IVC* dst);
+
+int vc_hsv_histogram_equalization(IVC* src, IVC* dst);
+
+int vc_gray_histogram_equalization(IVC* src, IVC* dst);
+
+int vc_gray_histogram_show(IVC* src, IVC* dst);
+
+int vc_draw_bounding_box_rgb(IVC* src, IVC* dst, OVC* blobs, int firstIteration);
+
+int vc_draw_bounding_box(IVC* src, IVC* dst, OVC* blobs, int firstIteration);
+
+int vc_table_resistors_multiplier(char* stringCor);
+
+int vc_table_resistors_value(char* stringCor);
+
+
 

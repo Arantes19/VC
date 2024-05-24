@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> 
+#include <string.h>
 #include "vc.h"
 
 /// @brief Open an image, make changes, and save to a new file.
@@ -258,168 +259,183 @@ int labellingImagePainEachBlob()
 	return 0;
 }
 
-int main(void)
+int TP()
 {
-    IVC * image[10];
-	IVC * imgOC[10];//Imagem que passou por um Open ou um Close
-	int* hmax=0, *hmin=5000, *wmax=0, *wmin=5000;
+    IVC* image[10];
+    IVC* dilateImages[10];
+    IVC* blobsArray[10];
+    OVC* blobSegmentation;
+    OVC* arrayBlobs[10] = { 0 };
+    int nBlobsSegmentation;
+    int iteradorSegmentador = 0;
+
+    /* Segmentação cor vermelha */
+    image[0] = vc_read_image("img_tp/resis1.ppm");
+
+    image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
+    vc_rgb_to_hsv(image[0], image[1]);
+
+    image[5] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+
+    /* Segmentação cor verde */
+    image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    vc_hsv_segmentation(image[1], image[4], 65, 115, 25, 50, 35, 60);
+    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);    
+    vc_binary_close(image[4], dilateImages[0], 9, 9);
+    blobsArray[1] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    nBlobsSegmentation = 0;
+    blobSegmentation = vc_binary_blob_labelling(dilateImages[0], blobsArray[1], &nBlobsSegmentation);
+    if (blobSegmentation != NULL) 
+    {
+        vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
+        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250)
+            strcpy(blobSegmentation[0].cor, "Verde");
+        arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
+        memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
+        iteradorSegmentador++;
+    }
+    printf("%d %d\n", blobSegmentation[0].area, blobSegmentation[1].area);
+    vc_write_image("test_tp/hsvVerde.pgm", dilateImages[0]);
+    vc_join_images(dilateImages[0], image[5]);
+
+    /* Segmentação cor azul */
+    nBlobsSegmentation = 0;
+    image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    vc_hsv_segmentation(image[1], image[3], 115, 200, 10, 43, 35, 48);
+    vc_binary_close(image[3], dilateImages[0], 9, 9);
+    blobSegmentation = vc_binary_blob_labelling(dilateImages[0], blobsArray[1], &nBlobsSegmentation);
+    if (blobSegmentation != NULL) 
+    {
+        vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
+        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        if (blobSegmentation[0].area >= 500 && blobSegmentation[0].area <= 1250)
+            strcpy(blobSegmentation[0].cor, "Azul");
+        arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
+        memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
+        iteradorSegmentador++;
+    }
+    printf("%d %d\n", blobSegmentation[0].area, blobSegmentation[1].area);
+    vc_write_image("test_tp/hsvAzul.pgm", dilateImages[0]);
+    vc_join_images(dilateImages[0], image[5]);
 
 
-	/*  Segmentação cor vermelha */
-	image[0] = vc_read_image("img_tp/resis1.ppm");
-	image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels); // imagens hsv devem ter todas as propriedades iguais á imagem original
-	
-	vc_rgb_to_hsv(image[0], image[1]);
-	
-	image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels); //imagens das cores segmentadas devem ser pgm -> 1 channel
-	vc_hsv_segmentation(image[1], image[2], 6, 16, 50, 72, 60, 80); // valores com uma margem (entre 2/5)
-	
-	
-	/* Criar blob e labelling 
-	Isto tenho de ver melhor mas se tiveres tempo podes tentar fazer isto
-	No projeto que te mandei ("TP/main.c") tens lá como o gajo fez, podes tentar recriar que tb ajuda a perceber  
+    // Segmentação do vermelho 
+    nBlobsSegmentation = 0;
+    image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    vc_hsv_segmentation(image[1], image[2], 6, 16, 50, 72, 60, 80);
+    vc_binary_close(image[2], dilateImages[0], 9, 9);
+    blobSegmentation = vc_binary_blob_labelling(dilateImages[0], blobsArray[1], &nBlobsSegmentation);
+    if (blobSegmentation != NULL) {
+        vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
+        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250)
+            strcpy(blobSegmentation[0].cor, "Vermelho");
+        arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
+        memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
+        iteradorSegmentador++;
+    } 
+    vc_write_image("test_tp/hsvred.pgm", dilateImages[0]);
+    vc_join_images(dilateImages[0], image[5]);
+    vc_write_image("test_tp/coresJuntas.pgm", image[5]);
 
-	*/
-	// codigo aqui e quando conseguires melhorar podes descomentar o que está em cima e deixar apenas titulo 
+    // Junção das segmentações
+    int nblobs;
+    OVC* blobs;
+    blobsArray[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    nblobs = 0;
+    blobs = vc_binary_blob_labelling(image[5], blobsArray[0], &nblobs);
 
-	 //Segmentação cor azul
+    if (blobs != NULL) {
+        int isLastDigit = 0, indexTotalOhmRes = 0, totalResist = 0, multiplicador = 0;
+        int totalOhmRes[10];
+        vc_binary_blob_info(blobsArray[0], blobs, nblobs);
+        printf("\nNumber of labels: %d\n", nblobs);
+        for (int i = 0; i < nblobs; i++) {
+            if (i + 1 >= nblobs)
+                isLastDigit = 1;
+            strncpy(blobs[i].cor, arrayBlobs[i]->cor, sizeof(char[10]));
+            printf("-> Label %d\n", blobs[i].label);
+            printf("-> Number pixels area: %d\n", blobs[i].area);
+            printf("-> Number pixels perimeter: %d\n", blobs[i].perimeter);
+            printf("-> Label color: %s\n", blobs[i].cor);
+            int novoValorFaixa = vc_table_resistors_value(blobs[i].cor);
+            totalOhmRes[indexTotalOhmRes++] = novoValorFaixa;
+            
+            if (isLastDigit)
+                multiplicador = vc_table_resistors_multiplier(blobs[i].cor);
+        }
+        for (int i = 0; i < indexTotalOhmRes-1; i++)
+            totalResist = totalResist * 10 + totalOhmRes[i];
+        totalResist = totalResist * multiplicador;
+        printf("Valor resistencia: %d\n", totalResist);
 
-	image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	vc_hsv_segmentation(image[1], image[3], 115, 200, 10, 43, 35, 48);
+        blobsArray[1] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+        for (int i = 0; i < nblobs; i++) {
+            OVC blobAtual = blobs[i];
+            vc_draw_bounding_box(blobsArray[0], blobsArray[1], &blobAtual, i);    
+        }
+        vc_write_image("test_tp/teste.ppm", image[0]);
+        vc_write_image("test_tp/drawingBox.pgm", blobsArray[1]);
+    } 
 
-	//terminando as cenas para a cor vermelha, replicar para cor azul 
-	
-	
-	 //Segmentação cor verde 
-
-	image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	vc_hsv_segmentation(image[1], image[4], 65, 115, 25, 50, 35, 60);
-
-	//terminando as cenas para a cor vermelha, replicar para cor verde 
-	
-
-	/* Segmentação cor castanho
-	image[5] = vc_read_image("img_tp/resis3.ppm");
-	image[6] = vc_image_new(image[5]->width, image[5]->height, image[5]->channels, image[5]->levels);
-	vc_rgb_to_hsv(image[5], image[6]);
-	image[7] = vc_image_new(image[5]->width, image[5]->height, 1, image[5]->levels);
-	vc_hsv_segmentation(image[6], image[7], 20, 38, 23, 51, 31, 50);
-	*/
-
-	/* Segmentação cor verde escuro
-	image[8] = vc_read_image("img_tp/resis4.ppm");
-	image[9] = vc_image_new(image[8]->width, image[8]->height, image[8]->channels, image[8]->levels);
-	vc_rgb_to_hsv(image[8], image[9]);
-	image[10] = vc_image_new(image[8]->width, image[8]->height, 1, image[8]->levels);
-	vc_hsv_segmentation(image[9], image[10], 30, 100, 3, 35, 22, 27);
-	*/
-
-
-
-
-		/* Melhoramento de imagem*/
-	// Passei para baixo pq eu precisava das segmentações já criadas
-
-	//imgOC[1] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	//imgOC[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	//imgOC[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-
-
-	//Close = Dilate, Erode 
-	//vc_binary_close(image[2], imgOC[1], 9, 9);
-	//vc_binary_close(image[3], imgOC[2], 9, 9);
-	//vc_binary_close(image[4], imgOC[3], 9, 9);
-
-
-
-	//Dilate = Erode, Dilate //Foi ignorado por produzir resultados piores, como seria de esperar... 
-	//vc_binary_open(image[2], imgOC[1], 11, 11);
-	//vc_binary_open(image[3], imgOC[2], 11, 11);
-	//vc_binary_open(image[4], imgOC[3], 11, 11);
-
-
-	image[5] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
-	lateraisHsv(image[1], image[5], hmax, hmin, wmax, wmin);
-
-	//Criar as imagens depois de realizadas as devidas alterações;
-	vc_write_image("test_tp/hsv.pgm", image[1]);
-	vc_write_image("HSV-Segmentation.pgm", image[5]);
+    /* Criar as imagens depois de realizadas as devidas alterações */
+    //vc_write_image("test_tp/hsv.pgm", image[1]);
     //vc_write_image("test_tp/red.pgm", image[2]);
-	//vc_write_image("test_tp/blue.pgm", image[3]);
-	//vc_write_image("test_tp/green.pgm", image[4]);
-	//vc_write_image("BC-1.pgm", imgOC[1]);
-	//vc_write_image("BC-2.pgm", imgOC[2]);
-	//vc_write_image("BC-3.pgm", imgOC[3]);
+    //vc_write_image("test_tp/blue.pgm", image[3]);
+    //vc_write_image("test_tp/green.pgm", image[4]);
 
-
-	/* Escrita da hsv da resistencia 2 e segmentação do castanho
-	vc_write_image("test_tp/hsv2.pgm", image[6]);
-	vc_write_image("test_tp/brown.pgm", image[7]);
-	*/
-
-	/* Escrita da hsv da resistencia 3 e segmentação do verde escuro
-	vc_write_image("test_tp/hsv3.pgm", image[9]);
-	vc_write_image("test_tp/darkgreen.pgm", image[10]);
-	*/
-
-	//Libertar a memória alocada às imagens;
+    /* Libertar a memória alocada às imagens */
     vc_image_free(image[0]);
     vc_image_free(image[1]);
     vc_image_free(image[2]);
-	vc_image_free(image[3]);
-	vc_image_free(image[4]);
-	vc_image_free(image[5]);
+    vc_image_free(image[3]);
+    vc_image_free(image[4]);
+    vc_image_free(image[5]);
+    vc_image_free(dilateImages[0]);
+    vc_image_free(blobsArray[1]);
+    vc_image_free(blobsArray[0]);
 
-	//vc_image_free(imgOC[1]);
-	//vc_image_free(imgOC[2]);
-	//vc_image_free(imgOC[3]);
+    /* Descomentar para testar segmentação de castanho e verde escuro */
+    /*
+    vc_image_free(image[5]);
+    vc_image_free(image[6]);
+    vc_image_free(image[7]);
+    vc_image_free(image[8]);
+    vc_image_free(image[9]);
+    vc_image_free(image[10]);
+    */
 
-
-	/* Descomentar para testar segmentação de castanho e verde escuro
-	vc_image_free(image[5]);
-	vc_image_free(image[6]);
-	vc_image_free(image[7]);
-	vc_image_free(image[8]);
-	vc_image_free(image[9]);
-	vc_image_free(image[10]);
-	*/
-	
-
-
-	//Abrir as imagens produzidas de maneira a procurar por erros;
-    
-
-    //system("cmd /c start FilterGear img_tp/resis1.ppm");
-	system("cmd /c start FilterGear test_tp/hsv.pgm"); // é preciso verificar se realmente é pgm as imagens hsv|| Resposta: supostamente PPM é para rgb entao deveria dar para HSV mas o Chat diz para meter como jpeg, png, etc
-	system("cmd /c start FilterGear  HSV-Segmentation.pgm");
-	//system("cmd /c start FilterGear test_tp/red.pgm");
-	//system("cmd /c start FilterGear  test_tp/blue.pgm");
-	//system("cmd /c start FilterGear  test_tp/green.pgm");
-
-	//system("cmd /c start FilterGear  BC-1.pgm");
-	//system("cmd /c start FilterGear  BC-3.pgm");
-	//system("cmd /c start FilterGear  BC-2.pgm");
-
-	printf("Press any key to exit...\n");
-	
-	
-	/* Testes de segmentação do castanho
-	system("cmd /c start FilterGear img_tp/resis3.ppm");
-	system("FilterGear test_tp/hsv2.pgm");
-	system("FilterGear test_tp/brown.pgm");
-	*/
-	
-	/* Testes de segmentação do verde escuro
-	system("cmd /c start FilterGear img_tp/resis4.ppm");
-	system("FilterGear test_tp/hsv3.pgm");
-	system("FilterGear test_tp/darkgreen.pgm");
-	*/
+    system("cmd /c start FilterGear test_tp/teste.ppm");
+    system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
+    system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
+    system("cmd /c start FilterGear test_tp/hsvred.pgm");
+    system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
+    system("cmd /c start FilterGear test_tp/drawingBox.pgm");
 
 
-	// Comandos que estou a executar para correr o código:
-	// gcc vc.c main.c -o a.exe
-	// ./a.exe
+    printf("Press any key to exit...\n");
 
-    getchar();
+    /* Testes de segmentação do castanho */
+    /*
+    system("cmd /c start FilterGear img_tp/resis3.ppm");
+    system("FilterGear test_tp/hsv2.pgm");
+    system("FilterGear test_tp/brown.pgm");
+    */
+
+    /* Testes de segmentação do verde escuro */
+    /*
+    system("cmd /c start FilterGear img_tp/resis4.ppm");
+    system("FilterGear test_tp/hsv3.pgm");
+    system("FilterGear test_tp/darkgreen.pgm");
+    */
+
     return 0;
 }
+
+
+int main(void)
+{
+    TP();
+}
+
