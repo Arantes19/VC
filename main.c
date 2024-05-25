@@ -280,7 +280,7 @@ int TP()
     /* Segmentação cor verde */
     image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[4], 65, 115, 25, 50, 35, 60);
-    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);    
+    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);   
     vc_binary_close(image[4], dilateImages[0], 9, 9);
     blobsArray[1] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     nBlobsSegmentation = 0;
@@ -380,10 +380,10 @@ int TP()
     } 
 
     /* Criar as imagens depois de realizadas as devidas alterações */
-    //vc_write_image("test_tp/hsv.pgm", image[1]);
-    //vc_write_image("test_tp/red.pgm", image[2]);
-    //vc_write_image("test_tp/blue.pgm", image[3]);
-    //vc_write_image("test_tp/green.pgm", image[4]);
+    vc_write_image("test_tp/hsv.pgm", image[1]);
+    vc_write_image("test_tp/red.pgm", image[2]);
+    vc_write_image("test_tp/blue.pgm", image[3]);
+    vc_write_image("test_tp/green.pgm", image[4]);
 
     /* Libertar a memória alocada às imagens */
     vc_image_free(image[0]);
@@ -406,10 +406,10 @@ int TP()
     vc_image_free(image[10]);
     */
 
-    system("cmd /c start FilterGear test_tp/teste.ppm");
-    system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
-    system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
-    system("cmd /c start FilterGear test_tp/hsvred.pgm");
+    //system("cmd /c start FilterGear test_tp/teste.ppm");
+    //system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
+    //system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
+    //system("cmd /c start FilterGear test_tp/hsvred.pgm");
     system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
     system("cmd /c start FilterGear test_tp/drawingBox.pgm");
 
