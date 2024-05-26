@@ -103,9 +103,9 @@ int vc_hsv_segmentation(IVC* src, IVC* dst, int hmin, int hmax, int smin, int sm
 
 int vc_gray_3channels(IVC* src, IVC* dst);
 
-int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
+int calcLaterais(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
 
-int lateraisHsv(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin);
+int desenharLaterais(IVC *src, IVC *dst, int valor_hmax, int valor_hmin, int valor_wmax, int valor_wmin);
 
 int vc_join_images(IVC* src, IVC* dst);
 

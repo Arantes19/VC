@@ -1834,7 +1834,8 @@ int vc_gray_3channels(IVC *src, IVC *dst)
 }
 
 
-int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin){
+
+int calcLaterais(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin){
 
 	unsigned char *datasrc = (unsigned char *)src->data;
 	unsigned char *datadst = (unsigned char *)dst->data;
@@ -1843,11 +1844,14 @@ int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* w
 	int bytesperline = src->bytesperline;
 	int channels = src->channels;
 	int x, y;
-	int* i, *j;
 	long int pos, posdst;
 	unsigned char pixel;
 	int haux, waux;
 
+	*hmin = 5000;
+	*wmin = 5000;
+	*wmax = 0;
+	*hmax = 0;
 
 	// Verificação de erros
 	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL))
@@ -1873,7 +1877,7 @@ int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* w
 			waux = x;
 
 			//Se o pixel for preto
-			if (pixel == 0)
+			if (pixel == 255)
 			{
 				//Descobre a altura min (ou o topo do retangulo)
 				if (haux < *hmin)
@@ -1904,19 +1908,18 @@ int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* w
 	}
 
 	//Desenhar linha entre wmin e wmax na linha de hmax && wmin e wmax na linha de hmin && hmax a hmin na coluna de wmin && hmax a hmin na coluna de wmax
-	for (i = hmin; i <= hmax; i++)
+	for (y = *hmin; y <= *hmax; y++)
 	{
-		for (j = wmin; j <= wmax; j++)
+		for (x = *wmin; x <= *wmax; x++)
 		{
-			if (i==hmin || i==hmax || j==wmin || j==wmax)
+			if (y == *hmin || y == *hmax || x == *wmin || x == *wmax)
 			{
-					posdst = (*i) * bytesperline + (*j) * channels;
-					datadst[posdst] = 0;		
+				posdst = y * bytesperline + x * channels;
+				datadst[posdst] = 0;
 			}
-		
 		}
-		
-	} 
+	}
+
 	/*
 	haux = ( hmax - hmin ) / 2;
 	waux = ( wmax - wmin ) / 2;
@@ -1928,84 +1931,61 @@ int lateraisBinary(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* w
 }
 
 
+
 //Ideia seria receber o RGB(src) e uma imagem(dst) para "desenhar" as laterais da resistencia
 //Para "desenhar" seria necessário passar a RGB para HSV, passar para binario, fazer o close e passar pela função lateraisBinarios. 
 //Seria necessario enviar os dados de hmax, hmin, wmax e wmin para desenhar utilizando essas coordenadas
 
-int lateraisHsv(IVC *src, IVC * dst, int * hmax, int* hmin, int* wmax, int* wmin){
+int desenharLaterais(IVC *src, IVC *dst, int valor_hmax, int valor_hmin, int valor_wmax, int valor_wmin) {
+    unsigned char *datasrc = (unsigned char *)src->data;
+    unsigned char *datadst = (unsigned char *)dst->data;
+    int width = src->width;
+    int height = src->height;
+    int bytesperline_src = src->bytesperline;
+    int bytesperline_dst = dst->bytesperline;
+    int channels_src = src->channels;
+    int channels_dst = dst->channels;
+    int x, y;
+    long int pos_src, pos_dst;
 
-	IVC *img[5];//Imagens para operações intermedias
-	unsigned char *datasrc = (unsigned char *)src->data;
-	unsigned char *datadst = (unsigned char *)dst->data;
-	int bytesperline_src = src->width * src->channels;
-	int bytesperline_dst = dst->width * dst->channels;
-	int channels_src = src->channels;
-	int channels_dst = dst->channels;
-	int width = src->width;
-	int height = src->height;
-	long int pos_src, pos_dst;
-	int x, y, pixel;
-	int* i, *j;
+    // Error checking
+    if ((width <= 0) || (height <= 0) || (datasrc == NULL)) {
+        printf("Error: Invalid source image dimensions or data.\n");
+        return 0;
+    }
+    if (width != dst->width || height != dst->height) {
+        printf("Error: Source and destination image dimensions do not match.\n");
+        return 0;
+    }
+    if (channels_src != 3 || channels_dst != 3) {
+        printf("Error: Source and destination images must have 3 channels.\n");
+        return 0;
+    }
 
-	// Verificação de erros
-	if ((width <= 0) || (height <= 0) || (datasrc == NULL))
-		return 0;
-	if (width != dst->width || height != dst->height)
-		return 0;
-	if (channels_src != 3 || dst->channels != 1)
-		return 0;
+    // Copy the entire source image to the destination image
+    memcpy(datadst, datasrc, bytesperline_src * height);
 
-
-	memcpy(datadst, datasrc, bytesperline_src * height);
-
-	//RGB para GrayScale
-	img[0] = vc_image_new(src->width, src->height, 1, src->levels);
-	vc_rgb_to_gray(src, img[0]);
-	
-	if (img[0] == NULL)
+    // Draw the border in the HSV image
+    for (y = valor_hmin; y <= valor_hmax; y++) 
 	{
-		printf("GANDA ERRO!!");	
-		return 0;
-	}
-
-	img[1] = vc_image_new(src->width, src->height, 1, 1);
-	vc_gray_to_binary(img[0], img[1], 180);
-
-	if (img[1] == NULL)
-	{
-		printf("GANDA ERRO!!");	
-		return 0;
-	}
-
-	img[2] = vc_image_new(src->width, src->height, 1, 1);
-	lateraisBinary(img[1], img[2], hmax, hmin, wmax, wmin);
-	
-	if (img[2] == NULL)
-	{
-		printf("GANDA ERRO!!");	
-		return 0;
-	}
-
-	
-	for (i = hmin; i <= hmax; i++)
-	{
-		for (j = wmin; j <= wmax; j++)
+        for (x = valor_wmin; x <= valor_wmax; x++) 
 		{
-			if (i==hmin || i==hmax || j==wmin || j==wmax)
+            pos_dst = y * bytesperline_dst + x * channels_dst;
+
+            // Set the destination pixel to black if it is on the border
+            if (y == valor_hmin || y == valor_hmax || x == valor_wmin || x == valor_wmax) 
 			{
-					pos_dst = (*i) * bytesperline_dst + (*j) * channels_dst;
-					datadst[pos_dst] = 255;		
-			}
-		
-		}
-		
-	}
+                datadst[pos_dst] = 0;     // H component
+                datadst[pos_dst + 1] = 0; // S component
+                datadst[pos_dst + 2] = 0; // V component
 
-	
+            }
+        }
+    }
 
-	return 1;
-
+    return 1;
 }
+
 
 int vc_join_images(IVC* src, IVC* dst)
 {

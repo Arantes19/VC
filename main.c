@@ -268,12 +268,34 @@ int TP()
     OVC* arrayBlobs[10] = { 0 };
     int nBlobsSegmentation;
     int iteradorSegmentador = 0;
+    int valor_hmax, valor_hmin, valor_wmax, valor_wmin;
 
     image[0] = vc_read_image("img_tp/resis1.ppm");
     image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
     vc_rgb_to_hsv(image[0], image[1]);
 
     image[5] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+
+    /*Segmentação da Madeira*/
+    
+    image[7] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	vc_hsv_segmentation(image[1], image[7], 33, 44, 55, 100, 70, 90);
+    vc_write_image("Seg-Madeira", image[7]);
+
+	image[8] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	vc_binary_dilate(image[7], image[8], 11);
+    vc_write_image("Dil-Madeira", image[7]);
+
+	image[9] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+	calcLaterais(image[8], image[9], &valor_hmax, &valor_hmin, &valor_wmax, &valor_wmin);
+    vc_write_image("CalcLat-Madeira", image[7]);
+
+    /*Testar se o código funcionou correctamente*/
+	//printf("%d,%d,%d,%d", valor_hmax, valor_hmin, valor_wmax, valor_wmin);
+
+	image[10] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
+	desenharLaterais(image[9], image[10], valor_hmax, valor_hmin, valor_wmax, valor_wmin);
+    vc_write_image("Lat-Madeira", image[7]);
 
     /* Segmentação da resis1 */
     nBlobsSegmentation = 0;
@@ -426,6 +448,10 @@ int TP()
     vc_image_free(image[4]);
     vc_image_free(image[5]);
     vc_image_free(image[6]);
+    vc_image_free(image[7]);
+    vc_image_free(image[8]);
+    vc_image_free(image[9]);
+    vc_image_free(image[10]);
     vc_image_free(dilateImages[0]);
     vc_image_free(blobsArray[1]);
     vc_image_free(blobsArray[0]);
