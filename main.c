@@ -261,7 +261,7 @@ int labellingImagePainEachBlob()
 
 int TP()
 {
-    IVC* image[10];
+    IVC* image[30];
     IVC* dilateImages[10];
     IVC* blobsArray[10];
     OVC* blobSegmentation;
@@ -269,26 +269,20 @@ int TP()
     int nBlobsSegmentation;
     int iteradorSegmentador = 0;
 
-
     image[0] = vc_read_image("img_tp/resis1.ppm");
-
     image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
     vc_rgb_to_hsv(image[0], image[1]);
 
     image[5] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
 
-    // Segmentação da resis 
+    /* Segmentação da resis1 */
     nBlobsSegmentation = 0;
     image[6] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[6], 30, 45, 45, 65, 50, 90);
-    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);   
-    vc_binary_close(image[6], dilateImages[0], 9, 9);
-    
-    vc_write_image("test_tp/hsvResis.pgm", dilateImages[0]);
-    vc_join_images(dilateImages[0], image[5]);
-
+    vc_write_image("test_tp/hsvResis.pgm", image[6]);
 
     /* Segmentação cor verde */
+
     image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[4], 67, 110, 25, 50, 37, 50);
     dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);   
@@ -311,6 +305,7 @@ int TP()
     vc_join_images(dilateImages[0], image[5]);
 
     /* Segmentação cor azul */
+
     nBlobsSegmentation = 0;
     image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[3], 115, 200, 10, 43, 35, 48);
@@ -331,7 +326,8 @@ int TP()
     vc_join_images(dilateImages[0], image[5]);
 
 
-    // Segmentação do vermelho 
+    /* Segmentação do vermelho */
+
     nBlobsSegmentation = 0;
     image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[2], 6, 16, 50, 72, 60, 80);
@@ -350,7 +346,38 @@ int TP()
     vc_join_images(dilateImages[0], image[5]);
     vc_write_image("test_tp/coresJuntas.pgm", image[5]);
 
-    // Junção das segmentações
+
+    /* Segmentação cor castanho
+
+	image[5] = vc_read_image("img_tp/resis3.ppm");
+	image[6] = vc_image_new(image[5]->width, image[5]->height, image[5]->channels, image[5]->levels);
+	vc_rgb_to_hsv(image[5], image[6]);
+	image[7] = vc_image_new(image[5]->width, image[5]->height, 1, image[5]->levels);
+	vc_hsv_segmentation(image[6], image[7], 20, 38, 23, 51, 31, 50);
+	vc_write_image("test_tp/hsvcastanho.pgm", image[7]);
+    */
+
+	/* Segmentação cor preta
+
+	image[8] = vc_read_image("img_tp/resis4.ppm");
+	image[9] = vc_image_new(image[8]->width, image[8]->height, image[8]->channels, image[8]->levels);
+	vc_rgb_to_hsv(image[8], image[9]);
+	image[10] = vc_image_new(image[8]->width, image[8]->height, 1, image[8]->levels);
+	vc_hsv_segmentation(image[9], image[10], 30, 100, 3, 35, 22, 27);
+	vc_write_image("test_tp/hsvpreto.pgm", image[10]);
+    */
+
+    /* Segmentação cor laranja
+
+    image[11] = vc_read_image("img_tp/resis7.ppm");
+	image[12] = vc_image_new(image[11]->width, image[11]->height, image[11]->channels, image[11]->levels);
+	vc_rgb_to_hsv(image[11], image[12]);
+	image[13] = vc_image_new(image[11]->width, image[11]->height, 1, image[11]->levels);
+	vc_hsv_segmentation(image[12], image[13], 10, 24, 70, 83, 80, 100);
+    vc_write_image("test_tp/hsvlaranja.pgm", image[13]);
+    */
+
+    /* Junção das segmentações */
     int nblobs;
     OVC* blobs;
     blobsArray[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
@@ -388,13 +415,8 @@ int TP()
         }
         vc_write_image("test_tp/teste.ppm", image[0]);
         vc_write_image("test_tp/drawingBox.pgm", blobsArray[1]);
-    } 
-
-    /* Criar as imagens depois de realizadas as devidas alterações */
-    vc_write_image("test_tp/hsv.pgm", image[1]);
-    vc_write_image("test_tp/red.pgm", image[2]);
-    vc_write_image("test_tp/blue.pgm", image[3]);
-    vc_write_image("test_tp/green.pgm", image[4]);
+    }
+    
 
     /* Libertar a memória alocada às imagens */
     vc_image_free(image[0]);
@@ -403,40 +425,35 @@ int TP()
     vc_image_free(image[3]);
     vc_image_free(image[4]);
     vc_image_free(image[5]);
+    vc_image_free(image[6]);
     vc_image_free(dilateImages[0]);
     vc_image_free(blobsArray[1]);
     vc_image_free(blobsArray[0]);
-    vc_image_free(image[6]);
 
-    /* Descomentar para testar segmentação de castanho e verde escuro */
-    /*
-    vc_image_free(image[5]);
-    vc_image_free(image[6]);
-    vc_image_free(image[7]);
-    vc_image_free(image[8]);
-    vc_image_free(image[9]);
-    vc_image_free(image[10]);
-    */
+    //vc_image_free(image[7]);
+    //vc_image_free(image[8]);
+    //vc_image_free(image[9]);
+    //vc_image_free(image[10]);
+    //vc_image_free(image[11]);
+    //vc_image_free(image[12]);
+    //vc_image_free(image[13]);
 
-    //system("cmd /c start FilterGear test_tp/teste.ppm");
     //system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
     //system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
     //system("cmd /c start FilterGear test_tp/hsvred.pgm");
     system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
     system("cmd /c start FilterGear test_tp/drawingBox.pgm");
-
+    //system("cmd /c start FilterGear test_tp/hsvlaranja.pgm");
 
     printf("Press any key to exit...\n");
 
-    /* Testes de segmentação do castanho */
-    /*
+    /* Testes de segmentação do castanho 
     system("cmd /c start FilterGear img_tp/resis3.ppm");
     system("FilterGear test_tp/hsv2.pgm");
     system("FilterGear test_tp/brown.pgm");
     */
 
-    /* Testes de segmentação do verde escuro */
-    /*
+    /* Testes de segmentação do verde escuro 
     system("cmd /c start FilterGear img_tp/resis4.ppm");
     system("FilterGear test_tp/hsv3.pgm");
     system("FilterGear test_tp/darkgreen.pgm");
