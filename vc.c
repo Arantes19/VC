@@ -1194,7 +1194,7 @@ int vc_binary_blob_info(IVC* src, OVC* blobs, int nblobs)
 	int height = src->height;
 	int bytesperline = src->bytesperline;
 	int channels = src->channels;
-	int x, y, i;
+	int x, y, i, aux;
 	long int pos;
 	int xmin, ymin, xmax, ymax;
 	long int sumx, sumy;
@@ -1224,7 +1224,7 @@ int vc_binary_blob_info(IVC* src, OVC* blobs, int nblobs)
 
 				if (data[pos] == blobs[i].label)
 				{
-					// �rea
+					// Area
 					blobs[i].area++;
 
 					// Centro de Gravidade
@@ -1246,7 +1246,8 @@ int vc_binary_blob_info(IVC* src, OVC* blobs, int nblobs)
 				}
 			}
 		}
-
+		
+		/* Função Original se precisares*/
 		// Bounding Box
 		blobs[i].x = xmin;
 		blobs[i].y = ymin;
@@ -1258,10 +1259,32 @@ int vc_binary_blob_info(IVC* src, OVC* blobs, int nblobs)
 		//blobs[i].yc = (ymax - ymin) / 2;
 		blobs[i].xc = sumx / MAX(blobs[i].area, 1);
 		blobs[i].yc = sumy / MAX(blobs[i].area, 1);
-	}
+		
+		/*
+		if (blobs[i].height < MINaux) MINaux = blobs[i].height;
+		if (blobs[i].height > MAXaux) MAXaux = blobs[i].height;
+		if (blobs[i].width > WIDaux) WIDaux = blobs[i].width;
 
+		/*INCOMPLETO*/
+		/*
+		// Bounding Box
+		blobs[i].x = xmin;
+		blobs[i].y = MINaux;
+		blobs[i].width = (xmax - xmin) + 1;
+		blobs[i].height = (ymax - ymin) + 1;
+
+		// Centro de Gravidade
+		//blobs[i].xc = (xmax - xmin) / 2;
+		//blobs[i].yc = (ymax - ymin) / 2;
+		blobs[i].xc = sumx / MAX(blobs[i].area, 1);
+		blobs[i].yc = sumy / MAX(blobs[i].area, 1);
+		*/
+	}
+	
 	return 1;
 }
+
+
 
 int vc_draw_bounding_box(IVC* src, IVC* dst, OVC* blobs, int firstIteration)
 {
@@ -1290,7 +1313,7 @@ int vc_draw_bounding_box(IVC* src, IVC* dst, OVC* blobs, int firstIteration)
 	}
 
 	return 1;
-	//// Bounding Box
+	// Bounding Box
 	//blobs[i].x = xmin;
 	//blobs[i].y = ymin;
 	//blobs[i].width = (xmax - xmin) + 1;
@@ -2037,6 +2060,8 @@ int vc_table_resistors_value(char* stringCor)
 		else if (strcmp(stringCor, "Branco") == 0)
 			return 9;
 		else if (strcmp(stringCor, "Dourado") == 0)
+			return 10;
+		else if (strcmp(stringCor, "Madeira") == 0)
 			return 10;
 	}
 	return -1;

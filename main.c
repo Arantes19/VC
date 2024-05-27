@@ -266,48 +266,74 @@ int TP()
     IVC* blobsArray[10];
     OVC* blobSegmentation;
     OVC* arrayBlobs[10] = { 0 };
+    int nblobs;
+    OVC* blobs;
     int nBlobsSegmentation;
     int iteradorSegmentador = 0;
-    int valor_hmax, valor_hmin, valor_wmax, valor_wmin;
 
     image[0] = vc_read_image("img_tp/resis1.ppm");
+
     image[1] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
     vc_rgb_to_hsv(image[0], image[1]);
 
     image[5] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
 
-    /*Segmentação da Madeira*/
-    
-    image[7] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	vc_hsv_segmentation(image[1], image[7], 33, 44, 55, 100, 70, 90);
-    vc_write_image("Seg-Madeira", image[7]);
-
-	image[8] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	vc_binary_dilate(image[7], image[8], 11);
-    vc_write_image("Dil-Madeira", image[7]);
-
-	image[9] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
-	calcLaterais(image[8], image[9], &valor_hmax, &valor_hmin, &valor_wmax, &valor_wmin);
-    vc_write_image("CalcLat-Madeira", image[7]);
-
-    /*Testar se o código funcionou correctamente*/
-	//printf("%d,%d,%d,%d", valor_hmax, valor_hmin, valor_wmax, valor_wmin);
-
-	image[10] = vc_image_new(image[0]->width, image[0]->height, image[0]->channels, image[0]->levels);
-	desenharLaterais(image[9], image[10], valor_hmax, valor_hmin, valor_wmax, valor_wmin);
-    vc_write_image("Lat-Madeira", image[7]);
-
     /* Segmentação da resis1 */
     nBlobsSegmentation = 0;
     image[6] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[6], 30, 45, 45, 65, 50, 90);
-    vc_write_image("test_tp/hsvResis.pgm", image[6]);
 
+    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);   
+    vc_binary_close(image[6], dilateImages[0], 9, 9);
+
+    vc_join_images(dilateImages[0], image[5]);
+
+    blobsArray[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
+    blobSegmentation = vc_binary_blob_labelling(dilateImages[0], blobsArray[2], &nBlobsSegmentation);
+    if (blobSegmentation != NULL) 
+    {
+        vc_binary_blob_info(blobsArray[2], blobSegmentation, nBlobsSegmentation);
+        printf("\nNumber of labels(Madeira): %d\n", nBlobsSegmentation);
+        if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250){
+            strcpy(blobSegmentation[0].cor, "Madeira");
+        }else return 0;
+        arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
+        memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
+        iteradorSegmentador++;
+    }else return 0;
+    printf("Area 1:%d \nArea 2:%d \nArea 3:%dx  ", blobSegmentation[0].area, blobSegmentation[1].area, blobSegmentation[2].area);
+    vc_write_image("test/hsvRESIS.pgm", dilateImages[0]);
+
+
+    blobsArray[3] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+    nblobs = 0;
+    blobs = vc_binary_blob_labelling(dilateImages[0], blobsArray[3], &nblobs);
+
+    if (blobs != NULL) {
+        vc_binary_blob_info(blobsArray[3], blobs, nblobs);
+        blobsArray[4] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+
+        for (int i = 0; i < nblobs; i++) {
+            OVC blobAtual = blobs[i];
+            vc_draw_bounding_box(dilateImages[0], blobsArray[4], &blobAtual, i);    
+        }
+
+        vc_write_image("test_tp/BOX_RESIS.pgm", blobsArray[4]);
+    }
+
+
+
+    /*
+    blobsArray[1] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+        for (int i = 0; i < nblobs; i++) {
+            OVC blobAtual = blobs[i];
+            vc_draw_bounding_box(blobsArray[0], blobsArray[1], &blobAtual, i);    
+        }
+    */
     /* Segmentação cor verde */
 
     image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[4], 67, 110, 25, 50, 37, 50);
-    dilateImages[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);   
     vc_binary_close(image[4], dilateImages[0], 9, 9);
     blobsArray[1] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     nBlobsSegmentation = 0;
@@ -315,14 +341,14 @@ int TP()
     if (blobSegmentation != NULL) 
     {
         vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
-        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        printf("\nNumber of labels(Verde): %d\n", nBlobsSegmentation);
         if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250)
             strcpy(blobSegmentation[0].cor, "Verde");
         arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
         memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
         iteradorSegmentador++;
     }
-    printf("%d %d\n", blobSegmentation[0].area, blobSegmentation[1].area);
+    printf("Area 1:%d \n", blobSegmentation[0].area);
     vc_write_image("test_tp/hsvVerde0.pgm", dilateImages[0]);
     vc_join_images(dilateImages[0], image[5]);
 
@@ -336,14 +362,14 @@ int TP()
     if (blobSegmentation != NULL) 
     {
         vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
-        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        printf("\nNumber of labels(Azul): %d\n", nBlobsSegmentation);
         if (blobSegmentation[0].area >= 500 && blobSegmentation[0].area <= 1250)
             strcpy(blobSegmentation[0].cor, "Azul");
         arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
         memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
         iteradorSegmentador++;
     }
-    printf("%d %d\n", blobSegmentation[0].area, blobSegmentation[1].area);
+    printf("Area 1:%d\n", blobSegmentation[0].area);
     vc_write_image("test_tp/hsvAzul.pgm", dilateImages[0]);
     vc_join_images(dilateImages[0], image[5]);
 
@@ -357,13 +383,14 @@ int TP()
     blobSegmentation = vc_binary_blob_labelling(dilateImages[0], blobsArray[1], &nBlobsSegmentation);
     if (blobSegmentation != NULL) {
         vc_binary_blob_info(blobsArray[1], blobSegmentation, nBlobsSegmentation);
-        printf("\nNumber of labels: %d\n", nBlobsSegmentation);
+        printf("\nNumber of labels(Vermelho): %d\n", nBlobsSegmentation);
         if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250)
             strcpy(blobSegmentation[0].cor, "Vermelho");
         arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
         memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
         iteradorSegmentador++;
     } 
+    printf("Area 1:%d\n", blobSegmentation[0].area);
     vc_write_image("test_tp/hsvred.pgm", dilateImages[0]);
     vc_join_images(dilateImages[0], image[5]);
     vc_write_image("test_tp/coresJuntas.pgm", image[5]);
@@ -400,8 +427,7 @@ int TP()
     */
 
     /* Junção das segmentações */
-    int nblobs;
-    OVC* blobs;
+    
     blobsArray[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     nblobs = 0;
     blobs = vc_binary_blob_labelling(image[5], blobsArray[0], &nblobs);
@@ -455,6 +481,11 @@ int TP()
     vc_image_free(dilateImages[0]);
     vc_image_free(blobsArray[1]);
     vc_image_free(blobsArray[0]);
+    vc_image_free(blobsArray[2]);
+    vc_image_free(blobsArray[3]);
+    vc_image_free(blobsArray[4]);
+    vc_image_free(blobsArray[5]);
+
 
     //vc_image_free(image[7]);
     //vc_image_free(image[8]);
@@ -466,9 +497,10 @@ int TP()
 
     //system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
     //system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
-    //system("cmd /c start FilterGear test_tp/hsvred.pgm");
-    system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
-    system("cmd /c start FilterGear test_tp/drawingBox.pgm");
+    system("cmd /c start FilterGear test_tp/hsvRESIS.pgm");
+    //system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
+    //system("cmd /c start FilterGear test_tp/drawingBox.pgm");
+    system("cmd /c start FilterGear test_tp/BOX_RESIS.pgm");
     //system("cmd /c start FilterGear test_tp/hsvlaranja.pgm");
 
     printf("Press any key to exit...\n");
