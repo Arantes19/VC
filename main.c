@@ -293,25 +293,25 @@ int TP()
     if (blobSegmentation != NULL) 
     {
         vc_binary_blob_info(blobsArray[2], blobSegmentation, nBlobsSegmentation);
-        printf("\nNumber of labels(Madeira): %d\n", nBlobsSegmentation);
-        if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250){
+        //printf("\nNumber of labels(Madeira): %d\n", nBlobsSegmentation);
+        if (blobSegmentation[0].area >= 550 && blobSegmentation[0].area <= 1250) {
             strcpy(blobSegmentation[0].cor, "Madeira");
-        }else return 0;
+        } else return 0;
         arrayBlobs[iteradorSegmentador] = malloc(sizeof(OVC));
         memcpy(arrayBlobs[iteradorSegmentador], blobSegmentation, sizeof(OVC));
         iteradorSegmentador++;
     }else return 0;
-    printf("Area 1:%d \nArea 2:%d \nArea 3:%dx  ", blobSegmentation[0].area, blobSegmentation[1].area, blobSegmentation[2].area);
-    vc_write_image("test/hsvRESIS.pgm", dilateImages[0]);
+    //printf("Area 1:%d \nArea 2:%d \nArea 3: %d", blobSegmentation[0].area, blobSegmentation[1].area, blobSegmentation[2].area);
+    vc_write_image("test_tp/hsvRESIS.pgm", dilateImages[0]);
 
 
-    blobsArray[3] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+    blobsArray[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     nblobs = 0;
     blobs = vc_binary_blob_labelling(dilateImages[0], blobsArray[3], &nblobs);
 
     if (blobs != NULL) {
         vc_binary_blob_info(blobsArray[3], blobs, nblobs);
-        blobsArray[4] = vc_image_new(image[0]->width, image[0]->height, 1, 255);
+        blobsArray[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
 
         for (int i = 0; i < nblobs; i++) {
             OVC blobAtual = blobs[i];
@@ -330,7 +330,8 @@ int TP()
             vc_draw_bounding_box(blobsArray[0], blobsArray[1], &blobAtual, i);    
         }
     */
-    /* Segmentação cor verde */
+
+    /* Segmentação cor verde 
 
     image[4] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     vc_hsv_segmentation(image[1], image[4], 67, 110, 25, 50, 37, 50);
@@ -351,8 +352,9 @@ int TP()
     printf("Area 1:%d \n", blobSegmentation[0].area);
     vc_write_image("test_tp/hsvVerde0.pgm", dilateImages[0]);
     vc_join_images(dilateImages[0], image[5]);
+    */
 
-    /* Segmentação cor azul */
+    /* Segmentação cor azul 
 
     nBlobsSegmentation = 0;
     image[3] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
@@ -372,9 +374,9 @@ int TP()
     printf("Area 1:%d\n", blobSegmentation[0].area);
     vc_write_image("test_tp/hsvAzul.pgm", dilateImages[0]);
     vc_join_images(dilateImages[0], image[5]);
+    */
 
-
-    /* Segmentação do vermelho */
+    /* Segmentação do vermelho 
 
     nBlobsSegmentation = 0;
     image[2] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
@@ -395,6 +397,7 @@ int TP()
     vc_join_images(dilateImages[0], image[5]);
     vc_write_image("test_tp/coresJuntas.pgm", image[5]);
 
+    */
 
     /* Segmentação cor castanho
 
@@ -426,7 +429,7 @@ int TP()
     vc_write_image("test_tp/hsvlaranja.pgm", image[13]);
     */
 
-    /* Junção das segmentações */
+    /* Junção das segmentações 
     
     blobsArray[0] = vc_image_new(image[0]->width, image[0]->height, 1, image[0]->levels);
     nblobs = 0;
@@ -464,6 +467,8 @@ int TP()
         vc_write_image("test_tp/teste.ppm", image[0]);
         vc_write_image("test_tp/drawingBox.pgm", blobsArray[1]);
     }
+
+    */
     
 
     /* Libertar a memória alocada às imagens */
@@ -474,33 +479,21 @@ int TP()
     vc_image_free(image[4]);
     vc_image_free(image[5]);
     vc_image_free(image[6]);
-    vc_image_free(image[7]);
-    vc_image_free(image[8]);
-    vc_image_free(image[9]);
-    vc_image_free(image[10]);
-    vc_image_free(dilateImages[0]);
-    vc_image_free(blobsArray[1]);
-    vc_image_free(blobsArray[0]);
-    vc_image_free(blobsArray[2]);
-    vc_image_free(blobsArray[3]);
-    vc_image_free(blobsArray[4]);
-    vc_image_free(blobsArray[5]);
-
-
     //vc_image_free(image[7]);
     //vc_image_free(image[8]);
     //vc_image_free(image[9]);
     //vc_image_free(image[10]);
-    //vc_image_free(image[11]);
-    //vc_image_free(image[12]);
-    //vc_image_free(image[13]);
+    vc_image_free(dilateImages[0]);
+    vc_image_free(blobsArray[2]);
+    vc_image_free(blobsArray[3]);
+    vc_image_free(blobsArray[4]);
 
     //system("cmd /c start FilterGear test_tp/hsvVerde.pgm");
     //system("cmd /c start FilterGear test_tp/hsvAzul.pgm");
     system("cmd /c start FilterGear test_tp/hsvRESIS.pgm");
     //system("cmd /c start FilterGear test_tp/coresJuntas.pgm");
     //system("cmd /c start FilterGear test_tp/drawingBox.pgm");
-    system("cmd /c start FilterGear test_tp/BOX_RESIS.pgm");
+    system("FilterGear test_tp/BOX_RESIS.pgm");
     //system("cmd /c start FilterGear test_tp/hsvlaranja.pgm");
 
     printf("Press any key to exit...\n");
